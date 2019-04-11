@@ -1,6 +1,6 @@
 export const users = [
-  { userName: 'Christie', passowrd: 'twelve', id: 1 },
-  { userName: 'Mike', passowrd: 'finn', id: 2 },
-  { userName: 'Justin', passowrd: 'noodles', id: 3 },
-  { userName: 'Kayla', passowrd: 'vortex', id: 4 },
+  { userName: 'Christie', password: 'twelve', id: 1 },
+  { userName: 'Mike', password: 'finn', id: 2 },
+  { userName: 'Justin', password: 'noodles', id: 3 },
+  { userName: 'Kayla', password: 'vortex', id: 4 },
 ]

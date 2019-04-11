@@ -9,13 +9,17 @@ app.use(cors());
 
 app.locals.users = users;
 app.locals.preferences = preferences;
-app.locals.preferences = commutes;
+app.locals.commutes = commutes;
 
 app.listen(3001, () => console.log(`App listening on port 3001!`));
 
 app.post('/user', (req, res) => {
-  // match username and password and return happy or sad path
-  res.status(200).json(app.locals.users[0]);
+  const users = app.locals.users
+  const user = users.find(user => user.userName === req.body.name);
+  if (!user) {
+    return res.status(404).send("WHY WONT THIS WORK???")
+  }
+  res.status(200).json(user);
 })
 
 app.get('/preferences/:id', (req, res) => {
