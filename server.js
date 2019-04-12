@@ -14,11 +14,12 @@ app.use(cors());
 app.locals.users = users;
 app.locals.preferences = preferences;
 app.locals.commutes = commutes;
+app.locals.weather = []
 
 app.listen(3001, () => console.log(`App listening on port 3001!`));
 
 app.post('/user', (req, res) => {
-  const users = app.locals.users
+  const { users } = app.locals
   const user = users.find(user => user.userName === req.body.name);
   if (!user) {
     return res.status(404).send("WHY WONT THIS WORK???")
@@ -26,12 +27,18 @@ app.post('/user', (req, res) => {
   res.status(200).json(user);
 })
 
-app.get('/preferences/:id', (req, res) => {
+app.get('user/weather', (req, res) => {
+  const { id } = req.body
+  const { users } = app.locals
+  const user = users.find(user => user.id == id)
+  if (!user) return res.status(404)
+  const weather = getWeather(user.lat, user.lng)
+  console.log(weather)
   // mach user id to prefrences and return happy or sad path
-  res.status(200).json(app.locals.preferences[0]);
+  res.status(200).json('heyo');
 })
 
-app.get('/commute/:id', (req, res) => {
+app.get('/commute', (req, res) => {
   res.status(200).json(app.locals.commutes[0])
 })
 
@@ -66,6 +73,24 @@ app.post('/addPreferences', (req, res) => {
   // create new preferences  or return sad path
 })
 
+const getWeather = async (lat, lng) => {
+  const optObj = {
+    method: "GET",
+    headers: { "Content-Type": "application/json" }
+  }
+  console.log(zip)
+  try {
+    const response = await fetch(`https://api.darksky.net/forecast/${key}/${lat},${lng}`)
+    if (!response.ok) {
+      throw Error(response.statusText)
+    }
+    const data = await response.json()
+    console.log('in fetch', data)
+  } catch (error) {
+    return { message: error }
+  }
+}
+
 const getLoc = async (zip) => {
   const optObj = {
     method: "GET",
@@ -73,7 +98,7 @@ const getLoc = async (zip) => {
   }
   console.log(zip)
   try {
-    const response = await fetch(`https://www.zipcodeapi.com/rest/${key}/info.json/${zip}/degrees`)
+    const response = await fetch(`https://www.zipcodeapi.com/rest/${na}/info.json/${zip}/degrees`)
     if (!response.ok) {
       throw Error(response.statusText)
     }

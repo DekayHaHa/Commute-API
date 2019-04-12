@@ -1,1 +1,1 @@
-export const key = 'iCmO4us691aPxDd38xy16JL3ABmaGVTZVgGdNGqY4Jd7l8R9wZKGO0Mqa3hm0DIt'
+export const weatherKey = '9099b2769e8aadf7629b66e9de332585'

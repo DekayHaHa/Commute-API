@@ -10,7 +10,7 @@
 
 # production
 /build
-.key
+/key.js
 # misc
 /.vscode
 .DS_Store
