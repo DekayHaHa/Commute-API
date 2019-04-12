@@ -2,6 +2,10 @@ import express from 'express';
 import { preferences } from './fauxPreferences'
 import { users } from './fauxUsers'
 import { commutes } from './fauxCommutes'
+import fetch from 'node-fetch'
+import async from 'express-async-await'
+import key from './key'
+
 const app = express();
 import cors from 'cors';
 app.use(express.json());
@@ -31,7 +35,28 @@ app.get('/commute/:id', (req, res) => {
   res.status(200).json(app.locals.commutes[0])
 })
 
-app.post('/newUser', (req, res) => {
+app.post('/addUser', async (req, res) => {
+  const { lat, lng, zip, email } = req.body
+  const { users } = app.locals
+  const userCheck = users.find(user => user.email === email)
+  if (userCheck) return res.status(401).send("WHY WONT THIS WORK???")
+  let coords;
+  let userNewCoords;
+  if (!lat && !lng && zip) {
+    coords = await getLoc(zip)
+    userNewCoords = {
+      id: users.length + 1,
+      ...req.body,
+      ...coords
+    }
+  }
+  const newUser = {
+    id: users.length + 1,
+    ...req.body,
+  }
+  const userToReturn = userNewCoords || newUser
+  app.locals.users.push(userToReturn)
+  res.status(201).json(users[users.length - 1])
   // check username and password for use
   // create new user or return sad path
 })
@@ -40,3 +65,21 @@ app.post('/addPreferences', (req, res) => {
   // check user id for use
   // create new preferences  or return sad path
 })
+
+const getLoc = async (zip) => {
+  const optObj = {
+    method: "GET",
+    headers: { "Content-Type": "application/json" }
+  }
+  console.log(zip)
+  try {
+    const response = await fetch(`https://www.zipcodeapi.com/rest/${key}/info.json/${zip}/degrees`)
+    if (!response.ok) {
+      throw Error(response.statusText)
+    }
+    const data = await response.json()
+    console.log('in fetch', data)
+  } catch (error) {
+    return { message: error }
+  }
+}
