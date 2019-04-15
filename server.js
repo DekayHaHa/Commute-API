@@ -20,27 +20,40 @@ app.listen(3001, () => console.log(`App listening on port 3001!`));
 
 app.post('/api/user', (req, res) => {
   const { users } = app.locals
-  const user = users.find(user => user.userName === req.body.name);
-  if (!user) {
-    return res.status(404).send("WHY WONT THIS WORK???")
+  const { name, pass } = req.body
+  const user = users.find(user => user.userName === name);
+  if (!user || user.password !== pass) {
+    return res.status(401).json({ message: 'Either Username or password does not match system files' })
   }
-  res.status(200).json(user);
+  res.status(200).json({ userName: user.userName, id: user.id });
 })
 
 app.get('/api/user/weather/:id', async (req, res) => {
   const { id } = req.params
   const { users } = app.locals
   const user = users.find(user => user.id == id)
-  if (!user) return res.status(404)
-  console.log(user)
+  const checkUserWeather = app.locals.weather.find(elem => elem.id == id)
+  if (checkUserWeather) return res.status(200).json(checkUserWeather.weather)
   const weather = await getWeather(user.lat, user.lng)
-  console.log(weather)
-  // mach user id to prefrences and return happy or sad path
-  res.status(200).json('heyo');
+  if (weather.message) return res.status(401).send('Did not fetch')
+  app.locals.weather.push({ weather: weather, id, time: Date.now() }) // add time 
+  res.status(200).json(weather);
 })
 
-app.get('/commute', (req, res) => {
-  res.status(200).json(app.locals.commutes[0])
+app.get('/api/user/commute/:id', (req, res) => {
+  const { id } = req.params
+  const { commutes } = app.locals
+  const commute = commutes.find(elem => elem.id == id)
+  if (!commute) return res.status(404).send("WHY WONT THIS WORK???")
+  res.status(200).json(commute)
+})
+
+app.get('/api/user/preferences/:id', (req, res) => {
+  const { id } = req.params
+  const { preferences } = app.locals
+  const pref = preferences.find(elem => elem.id == id)
+  if (!pref) return res.status(404).send("WHY WONT THIS WORK???")
+  res.status(200).json(pref)
 })
 
 app.post('/addUser', async (req, res) => {
@@ -67,10 +80,6 @@ app.post('/addUser', async (req, res) => {
   res.status(201).json(users[users.length - 1])
 })
 
-app.post('/addPreferences', (req, res) => {
-  // check user id for use
-  // create new preferences  or return sad path
-})
 
 const getWeather = async (lat, lng) => {
   try {
@@ -87,7 +96,6 @@ const getWeather = async (lat, lng) => {
 }
 
 const cleanData = (data) => {
-  // console.log(data)
   return {
     current: data.currently,
     daily: data.daily
