@@ -4,7 +4,7 @@ import { users } from './fauxUsers'
 import { commutes } from './fauxCommutes'
 import fetch from 'node-fetch'
 import async from 'express-async-await'
-import key from './key'
+import { weatherKey } from './key'
 
 const app = express();
 import cors from 'cors';
@@ -18,7 +18,7 @@ app.locals.weather = []
 
 app.listen(3001, () => console.log(`App listening on port 3001!`));
 
-app.post('/user', (req, res) => {
+app.post('/api/user', (req, res) => {
   const { users } = app.locals
   const user = users.find(user => user.userName === req.body.name);
   if (!user) {
@@ -27,12 +27,13 @@ app.post('/user', (req, res) => {
   res.status(200).json(user);
 })
 
-app.get('user/weather', (req, res) => {
-  const { id } = req.body
+app.get('/api/user/weather/:id', async (req, res) => {
+  const { id } = req.params
   const { users } = app.locals
   const user = users.find(user => user.id == id)
   if (!user) return res.status(404)
-  const weather = getWeather(user.lat, user.lng)
+  console.log(user)
+  const weather = await getWeather(user.lat, user.lng)
   console.log(weather)
   // mach user id to prefrences and return happy or sad path
   res.status(200).json('heyo');
@@ -49,14 +50,14 @@ app.post('/addUser', async (req, res) => {
   if (userCheck) return res.status(401).send("WHY WONT THIS WORK???")
   let coords;
   let userNewCoords;
-  if (!lat && !lng && zip) {
-    coords = await getLoc(zip)
-    userNewCoords = {
-      id: users.length + 1,
-      ...req.body,
-      ...coords
-    }
-  }
+  // if (!lat && !lng && zip) {
+  //   coords = await getLoc(zip)
+  //   userNewCoords = {
+  //     id: users.length + 1,
+  //     ...req.body,
+  //     ...coords
+  //   }
+  // }
   const newUser = {
     id: users.length + 1,
     ...req.body,
@@ -64,8 +65,6 @@ app.post('/addUser', async (req, res) => {
   const userToReturn = userNewCoords || newUser
   app.locals.users.push(userToReturn)
   res.status(201).json(users[users.length - 1])
-  // check username and password for use
-  // create new user or return sad path
 })
 
 app.post('/addPreferences', (req, res) => {
@@ -74,37 +73,40 @@ app.post('/addPreferences', (req, res) => {
 })
 
 const getWeather = async (lat, lng) => {
-  const optObj = {
-    method: "GET",
-    headers: { "Content-Type": "application/json" }
-  }
-  console.log(zip)
   try {
-    const response = await fetch(`https://api.darksky.net/forecast/${key}/${lat},${lng}`)
+    const response = await fetch(`https://api.darksky.net/forecast/${weatherKey}/${lat},${lng}`)
+    // / exclude=currently, minutely, hourly, alerts, flags
     if (!response.ok) {
       throw Error(response.statusText)
     }
     const data = await response.json()
-    console.log('in fetch', data)
+    return await cleanData(data)
   } catch (error) {
     return { message: error }
   }
 }
 
-const getLoc = async (zip) => {
-  const optObj = {
-    method: "GET",
-    headers: { "Content-Type": "application/json" }
-  }
-  console.log(zip)
-  try {
-    const response = await fetch(`https://www.zipcodeapi.com/rest/${na}/info.json/${zip}/degrees`)
-    if (!response.ok) {
-      throw Error(response.statusText)
-    }
-    const data = await response.json()
-    console.log('in fetch', data)
-  } catch (error) {
-    return { message: error }
+const cleanData = (data) => {
+  // console.log(data)
+  return {
+    current: data.currently,
+    daily: data.daily
   }
 }
+// const getLoc = async (zip) => {
+//   const optObj = {
+//     method: "GET",
+//     headers: { "Content-Type": "application/json" }
+//   }
+//   console.log(zip)
+//   try {
+//     const response = await fetch(`https://www.zipcodeapi.com/rest/${na}/info.json/${zip}/degrees`)
+//     if (!response.ok) {
+//       throw Error(response.statusText)
+//     }
+//     const data = await response.json()
+//     console.log('in fetch', data)
+//   } catch (error) {
+//     return { message: error }
+//   }
+// }
