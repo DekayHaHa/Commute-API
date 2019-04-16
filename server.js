@@ -89,17 +89,31 @@ const getWeather = async (lat, lng) => {
       throw Error(response.statusText)
     }
     const data = await response.json()
-    return await cleanData(data)
+    const today = await cleanToday(data)
+    const current = await cleanCurrent(data)
+    return { today, current }
   } catch (error) {
     return { message: error }
   }
 }
 
-const cleanData = (data) => {
+const cleanToday = (data) => {
+  const today = data.daily.data[0]
   return {
-    current: data.currently,
-    daily: data.daily
+    tempHigh: Math.round(today.temperatureHigh),
+    tempLow: Math.round(today.temperatureLow),
+    avgWind: Math.round(today.windSpeed),
+    gusts: Math.round(today.windGust),
+    precipChance: today.precipProbability,
+    precipType: today.precipType,
+    humidity: today.humidity,
+    icon: today.icon || 'N/A',
+    summary: today.summary
   }
+}
+
+const cleanCurrent = data => {
+  return data.currently
 }
 // const getLoc = async (zip) => {
 //   const optObj = {
