@@ -1,17 +1,17 @@
 export const commutes = [{
   id: 1,
-  morning: '9:00am',
-  afternoon: '5:00pm'
+  morning: '0900',
+  afternoon: '1700'
 }, {
   id: 2,
-  morning: '8:00am',
-  afternoon: '7:00pm'
+  morning: '0800',
+  afternoon: '1900'
 }, {
   id: 3,
-  morning: '8:30am',
-  afternoon: '6:00pm'
+  morning: '0830',
+  afternoon: '1800'
 }, {
   id: 4,
-  morning: '7:00am',
-  afternoon: '7:00pm'
+  morning: '0700',
+  afternoon: '1900'
 }]
